@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ t('checkout.title') }} — CyberShop{% endblock %}
+{% block content %}
+
+<h1>{{ t('checkout.title') }}</h1>
+
+<div class="checkout-grid">
+  <!-- Item list -->
+  <div>
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>{{ t('cart.qty') }}</th>
+          <th>{{ t('account.total') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in items %}
+        <tr>
+          <td>
+            <span style="font-size:1.25rem">{{ item['image_url'] }}</span>
+            {{ item['name'] }}
+          </td>
+          <td>{{ item['quantity'] }}</td>
+          <td>{{ t('general.currency') }}{{ "%.2f"|format(item['subtotal']) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Summary & place order -->
+  <div class="checkout-summary">
+    <h2>{{ t('account.total') }}</h2>
+    {% for item in items %}
+    <div class="checkout-line">
+      <span>{{ item['name'] }} ×{{ item['quantity'] }}</span>
+      <span>{{ t('general.currency') }}{{ "%.2f"|format(item['subtotal']) }}</span>
+    </div>
+    {% endfor %}
+    <div class="checkout-line">
+      <span>{{ t('cart.total') }}</span>
+      <span>{{ t('general.currency') }}{{ "%.2f"|format(total) }}</span>
+    </div>
+
+    <form method="POST" style="margin-top:1.5rem">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">
+        ✓ {{ t('checkout.place_order') }}
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

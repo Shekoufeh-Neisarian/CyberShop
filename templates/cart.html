@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ t('cart.title') }} — CyberShop{% endblock %}
+{% block content %}
+
+<h1>{{ t('cart.title') }}</h1>
+
+{% if items %}
+<table class="cart-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>{{ t('cart.qty') }}</th>
+      <th>{{ t('product.price') }}</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="cartBody">
+  {% for item in items %}
+    <tr id="cart-row-{{ item['id'] }}">
+      <td>
+        <a href="{{ url_for('product', pid=item['id']) }}" style="display:flex; align-items:center; gap:.75rem; text-decoration:none; color:var(--text)">
+          <span style="font-size:1.5rem">{{ item['image_url'] }}</span>
+          <span style="font-weight:600">{{ item['name'] }}</span>
+        </a>
+      </td>
+      <td>
+        <div class="qty-control">
+          <button onclick="updateQty({{ item['id'] }}, {{ item['quantity'] - 1 }})">−</button>
+          <span id="qty-{{ item['id'] }}">{{ item['quantity'] }}</span>
+          <button onclick="updateQty({{ item['id'] }}, {{ item['quantity'] + 1 }})">+</button>
+        </div>
+      </td>
+      <td id="subtotal-{{ item['id'] }}">{{ t('general.currency') }}{{ "%.2f"|format(item['subtotal']) }}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="removeItem({{ item['id'] }})">
+          {{ t('cart.remove') }}
+        </button>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="cart-total-row">
+  <span class="cart-total-label">{{ t('cart.total') }}</span>
+  <span class="cart-total-amount" id="cartTotal">{{ t('general.currency') }}{{ "%.2f"|format(total) }}</span>
+</div>
+
+<div class="flex gap1 mt3" style="justify-content:flex-end">
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">{{ t('cart.continue') }}</a>
+  <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg">{{ t('cart.checkout') }} →</a>
+</div>
+
+{% else %}
+<p class="text-muted">{{ t('cart.empty') }}</p>
+<a href="{{ url_for('index') }}" class="btn btn-primary mt2">{{ t('cart.continue') }}</a>
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+function removeItem(pid) {
+  fetch('/api/cart/remove', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({product_id: pid})
+  }).then(r => r.json()).then(data => {
+    updateCartCount(data.count);
+    document.getElementById('cart-row-' + pid)?.remove();
+    refreshTotal();
+  });
+}
+
+function updateQty(pid, qty) {
+  if (qty < 0) return;
+  fetch('/api/cart/update', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({product_id: pid, quantity: qty})
+  }).then(r => r.json()).then(data => {
+    updateCartCount(data.count);
+    if (qty === 0) { document.getElementById('cart-row-' + pid)?.remove(); }
+    else { document.getElementById('qty-' + pid).textContent = qty; }
+    refreshTotal();
+  });
+}
+
+function refreshTotal() {
+  fetch('/api/cart').then(r => r.json()).then(data => {
+    const el = document.getElementById('cartTotal');
+    if (el) el.textContent = '€' + data.total.toFixed(2);
+  });
+}
+</script>
+{% endblock %}

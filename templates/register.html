@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ t('auth.register_title') }} — CyberShop{% endblock %}
+{% block content %}
+
+<div class="auth-form">
+  <h1>{{ t('auth.register_title') }}</h1>
+
+  <form method="POST">
+    <div class="form-group">
+      <label>{{ t('auth.username') }}</label>
+      <input type="text" name="username" autocomplete="username" required>
+    </div>
+    <div class="form-group">
+      <label>{{ t('auth.email') }}</label>
+      <input type="email" name="email" autocomplete="email" required>
+    </div>
+    <div class="form-group">
+      <label>{{ t('auth.password') }}</label>
+      <input type="password" name="password" autocomplete="new-password" required minlength="6">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">{{ t('auth.register_btn') }}</button>
+  </form>
+
+  <div class="auth-hint">
+    {{ t('auth.have_account') }}
+    <a href="{{ url_for('auth.login') }}">{{ t('nav.login') }}</a>
+  </div>
+</div>
+
+{% endblock %}

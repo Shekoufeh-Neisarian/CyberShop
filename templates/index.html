@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}CyberShop — {{ t('home.all_products') }}{% endblock %}
+{% block content %}
+
+<div class="hero">
+  <h1>{{ t('home.hero') }}</h1>
+  <p>{{ t('home.tagline') }}</p>
+</div>
+
+<div class="category-filter">
+  <a href="{{ url_for('index') }}" class="{% if not active_cat %}active{% endif %}">
+    {{ t('home.filter_all') }}
+  </a>
+  {% for cat in categories %}
+    <a href="{{ url_for('index', cat=cat['category']) }}"
+       class="{% if active_cat == cat['category'] %}active{% endif %}">
+      {{ cat['category'] }}
+    </a>
+  {% endfor %}
+</div>
+
+<div class="product-grid">
+  {% for p in products %}
+  <div class="card product-card">
+    <a href="{{ url_for('product', pid=p['id']) }}">
+      <div class="product-emoji">{{ p['image_url'] }}</div>
+      <div class="product-info">
+        <div class="product-name">{{ p['name'] }}</div>
+        <div class="product-desc">{{ p['description'] }}</div>
+        <div class="product-price">{{ t('general.currency') }}{{ "%.2f"|format(p['price']) }}</div>
+        <div class="product-category">{{ p['category'] }}</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

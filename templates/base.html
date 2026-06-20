@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CyberShop{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ── Nav ─────────────────────────────────────────────────────────────── -->
+  <nav>
+    <a href="{{ url_for('index') }}" class="nav-brand">🛒 Cyber<span>Shop</span></a>
+
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>{{ t('nav.shop') }}</a></li>
+      <li><a href="{{ url_for('route_map') }}" {% if request.endpoint == 'route_map' %}class="active"{% endif %}>{{ t('nav.routes') }}</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <div class="lang-toggle">
+        <a href="{{ url_for('set_lang', lang='en') }}" {% if lang == 'en' %}class="active"{% endif %}>EN</a>
+        <a href="{{ url_for('set_lang', lang='de') }}" {% if lang == 'de' %}class="active"{% endif %}>DE</a>
+      </div>
+
+      {% if current_user %}
+        <a href="{{ url_for('account') }}" class="btn btn-secondary btn-sm">👤 {{ current_user['username'] }}</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">{{ t('nav.logout') }}</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">{{ t('nav.login') }}</a>
+      {% endif %}
+
+      <a href="{{ url_for('cart') }}" class="cart-badge">
+        🛒 <span id="cart-count">{{ cart_count }}</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Flash messages ───────────────────────────────────────────────────── -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ── Layout body ──────────────────────────────────────────────────────── -->
+  <div class="layout-body">
+
+    <!-- ── Guide sidebar ──────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">{{ t('guide.title') }}</span>
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        {% for topic in topics %}
+        <div class="sidebar-topic {% if topic.id == active_topic %}is-active{% endif %}" id="st-{{ topic.id }}">
+          <button class="sidebar-topic-btn" onclick="toggleTopic('{{ topic.id }}')">
+            <span class="sidebar-topic-title">{{ topic.title }}</span>
+            <span class="sidebar-chevron">▾</span>
+          </button>
+          <div class="sidebar-topic-body {% if topic.id == active_topic %}open{% endif %}">
+            <p class="sidebar-desc">{{ topic.desc | safe }}</p>
+
+            <div class="sidebar-section">
+              <div class="sidebar-section-label">{{ t('guide.devtools') }}</div>
+              <p>{{ topic.devtools | safe }}</p>
+            </div>
+
+            {% if topic.files %}
+            <div class="sidebar-section">
+              <div class="sidebar-section-label">{{ t('guide.files') }}</div>
+              <div class="sidebar-files">
+                {% for f in topic.files %}
+                <code class="sidebar-file">{{ f }}</code>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if topic.page %}
+            <div class="sidebar-section">
+              <a href="{{ topic.page }}" class="sidebar-page-link">{{ t('guide.open_page') }}</a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <!-- ── Re-open button (shown when collapsed) ─────────────────────────── -->
+    <button class="sidebar-reopen-btn hidden" id="sidebarReopenBtn" onclick="toggleSidebar()">
+      {{ t('guide.open') }}
+    </button>
+
+    <!-- ── Main content ───────────────────────────────────────────────────── -->
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- .layout-body -->
+
+  <!-- ── Footer ───────────────────────────────────────────────────────────── -->
+  <footer>
+    <span>{{ t('footer.text') }}</span>
+    &nbsp;·&nbsp;
+    <a href="{{ url_for('route_map') }}">{{ t('nav.routes') }}</a>
+  </footer>
+
+  <!-- ── Behind-the-Scenes inspector ─────────────────────────────────────── -->
+  <div class="inspector-bar" id="inspectorBar">
+    <div class="inspector-tab" onclick="toggleInspector()">
+      {{ t('inspector.toggle') }}
+      &nbsp;
+      <span class="method-tag method-{{ request.method }}">{{ request.method }}</span>
+      <code style="font-size:.75rem; color:var(--text2)">{{ request.path }}</code>
+    </div>
+    <div class="inspector-drawer" id="inspectorDrawer">
+      <div class="inspector-drawer-inner">
+        <div class="inspector-section">
+          <h4>{{ t('inspector.queries') }}</h4>
+          <pre>{% if query_log %}{{ query_log | join('\n\n') }}{% else %}{{ t('inspector.none') }}{% endif %}</pre>
+        </div>
+        <div class="inspector-section">
+          <h4>{{ t('inspector.session') }}</h4>
+          <pre id="sessionData">{{ t('general.loading') }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI Chat Widget ────────────────────────────────────────────────────── -->
+  <div class="ai-widget" id="aiWidget">
+    <div class="ai-chat-panel" id="aiChatPanel">
+      <div class="ai-chat-header">
+        <span>🤖 {{ t('ai.title') }}</span>
+        <button onclick="toggleAI()" class="ai-close-btn">✕</button>
+      </div>
+      <div class="ai-chat-body">
+        <p class="ai-chat-subtitle">{{ t('ai.subtitle') }}</p>
+        <div class="ai-response" id="aiResponse"></div>
+        <div id="aiBadge" class="ai-offline-badge hidden"></div>
+      </div>
+      <div class="ai-chat-footer">
+        <input type="text" id="aiQuestion"
+               placeholder="{{ t('ai.ask_placeholder') }}"
+               onkeydown="if(event.key==='Enter') askAI()">
+        <button class="btn btn-primary btn-sm" id="aiBtn" onclick="askAI()">{{ t('ai.ask_btn') }}</button>
+      </div>
+    </div>
+    <button class="ai-fab" id="aiFab" onclick="toggleAI()" title="{{ t('ai.title') }}">💬</button>
+  </div>
+
+</div><!-- .page-wrapper -->
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,4 @@
+flask>=3.0
+werkzeug>=3.0
+google-genai>=1.0
+pyopenssl>=24.0

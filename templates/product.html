@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ product['name'] }} — CyberShop{% endblock %}
+{% block content %}
+
+<p class="text-muted mb2"><a href="{{ url_for('index') }}">{{ t('general.back') }}</a></p>
+
+<div class="product-detail">
+  <div class="product-detail-emoji">{{ product['image_url'] }}</div>
+
+  <div class="product-detail-info">
+    <h1>{{ product['name'] }}</h1>
+    <p class="text-muted">{{ product['description'] }}</p>
+    <div class="product-detail-price">{{ t('general.currency') }}{{ "%.2f"|format(product['price']) }}</div>
+    <div class="product-detail-meta">
+      <span>{{ t('product.category') }}: {{ product['category'] }}</span>
+      <span>{{ t('product.in_stock') }}: {{ product['stock'] }}</span>
+    </div>
+
+    <div class="flex gap1 flex-wrap">
+      <button class="btn btn-primary btn-lg" id="addCartBtn"
+              data-product-id="{{ product['id'] }}"
+              data-product-name="{{ product['name'] }}">
+        🛒 {{ t('product.add_cart') }}
+      </button>
+      <button class="btn btn-secondary btn-lg" onclick="toggleAI()">
+        🤖 {{ t('product.ask_ai') }}
+      </button>
+    </div>
+
+    <div id="addCartMsg" class="callout green mt2 hidden"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('addCartBtn').addEventListener('click', function() {
+  const pid = this.dataset.productId;
+  const name = this.dataset.productName;
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  fetch('/api/cart/add', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({product_id: parseInt(pid), quantity: 1})
+  })
+  .then(r => r.json())
+  .then(data => {
+    updateCartCount(data.count);
+    btn.textContent = '✓ Added!';
+    const msg = document.getElementById('addCartMsg');
+    msg.textContent = data.message;
+    msg.classList.remove('hidden');
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = '🛒 {{ t("product.add_cart") }}'; }, 1500);
+  })
+  .catch(() => { btn.disabled = false; btn.innerHTML = '🛒 {{ t("product.add_cart") }}'; });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ t('routes.title') }} — CyberShop{% endblock %}
+{% block content %}
+
+<h1>{{ t('routes.title') }}</h1>
+<p class="text-muted mb2">{{ t('routes.subtitle') }}</p>
+
+<table class="route-table">
+  <thead>
+    <tr>
+      <th>{{ t('inspector.route') }}</th>
+      <th>{{ t('inspector.method') }}</th>
+      <th>Endpoint</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in routes %}
+    <tr>
+      <td>
+        {% if r['methods'] == 'GET' or r['methods'] == 'GET, POST' %}
+          <a href="{{ r['rule'] }}" class="route-rule">{{ r['rule'] }}</a>
+        {% else %}
+          <span class="route-rule">{{ r['rule'] }}</span>
+        {% endif %}
+      </td>
+      <td>
+        {% for m in r['methods'].split(', ') %}
+          <span class="method-{{ m }}">{{ m }}</span>
+        {% endfor %}
+      </td>
+      <td><code>{{ r['endpoint'] }}</code></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="callout mt3">
+  <strong>How Flask routing works:</strong>
+  Each URL pattern is registered with <code>@app.route('/path')</code>.
+  When a request comes in, Flask matches the path to a function and calls it.
+  Variable parts like <code>/product/&lt;int:pid&gt;</code> capture values from the URL.
+</div>
+
+{% endblock %}
