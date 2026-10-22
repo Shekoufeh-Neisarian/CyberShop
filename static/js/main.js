@@ -11,7 +11,57 @@ function updateCartCount(count) {
 fetch('/api/cart')
   .then(r => r.json())
   .then(data => updateCartCount(data.count))
-  .catch(() => {});
+  .catch(() => { });
+
+
+// ── Theme (dark by default, optional light) ────────────────────────────────
+const THEME_KEY = 'theme';
+const LIGHT = 'light';
+const DARK = 'dark';
+
+function readStoredTheme() {
+  try { return localStorage.getItem(THEME_KEY); }
+  catch (e) { return null; }
+}
+
+function storeTheme(theme) {
+  try { localStorage.setItem(THEME_KEY, theme); }
+  catch (e) { /* The toggle still works without storage. */ }
+}
+
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') === LIGHT ? LIGHT : DARK;
+}
+
+function applyTheme(theme) {
+  const isLight = theme === LIGHT;
+  if (isLight) document.documentElement.setAttribute('data-theme', LIGHT);
+  else document.documentElement.removeAttribute('data-theme');
+
+  const toggle = document.getElementById('themeToggle');
+  if (!toggle) return;
+  const darkBtn = toggle.querySelector('[data-theme-select="dark"]');
+  const lightBtn = toggle.querySelector('[data-theme-select="light"]');
+  if (darkBtn) darkBtn.setAttribute('aria-pressed', String(!isLight));
+  if (lightBtn) lightBtn.setAttribute('aria-pressed', String(isLight));
+}
+
+function selectTheme(theme) {
+  if (theme !== LIGHT && theme !== DARK) return;
+  if (theme === currentTheme()) return;
+  storeTheme(theme);
+  applyTheme(theme);
+}
+
+// Restore the theme, then wire each half like the EN/DE selector.
+(function initTheme() {
+  applyTheme(readStoredTheme() === LIGHT ? LIGHT : DARK);
+  const toggle = document.getElementById('themeToggle');
+  if (!toggle) return;
+  toggle.querySelectorAll('[data-theme-select]').forEach(button => {
+    button.addEventListener('click', () => selectTheme(button.dataset.themeSelect));
+  });
+})();
 
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
@@ -35,7 +85,7 @@ function toggleTopic(id) {
 }
 
 // Restore sidebar state and auto-scroll active topic into view
-(function() {
+(function () {
   const sidebar = document.getElementById('sidebar');
   const reopenBtn = document.getElementById('sidebarReopenBtn');
   if (!sidebar) return;
@@ -73,7 +123,7 @@ function loadSessionData() {
 }
 
 // Body padding for fixed inspector bar
-(function() {
+(function () {
   const bar = document.getElementById('inspectorBar');
   if (bar) {
     document.querySelector('footer') && (document.querySelector('footer').style.marginBottom = bar.offsetHeight + 'px');
@@ -107,18 +157,18 @@ function askAI() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question: q })
   })
-  .then(r => r.json())
-  .then(data => {
-    if (resp) { resp.className = 'ai-response'; resp.textContent = data.answer; }
-    if (badge) {
-      badge.classList.remove('hidden');
-      if (data.live) { badge.className = 'ai-live-badge'; badge.textContent = '✓ Live Gemini response'; }
-      else { badge.className = 'ai-offline-badge'; badge.textContent = data.answer.includes('Offline') ? '' : '(offline mode)'; }
-    }
-    if (btn) btn.disabled = false;
-  })
-  .catch(() => {
-    if (resp) { resp.className = 'ai-response error'; resp.textContent = 'Something went wrong.'; }
-    if (btn) btn.disabled = false;
-  });
+    .then(r => r.json())
+    .then(data => {
+      if (resp) { resp.className = 'ai-response'; resp.textContent = data.answer; }
+      if (badge) {
+        badge.classList.remove('hidden');
+        if (data.live) { badge.className = 'ai-live-badge'; badge.textContent = '✓ Live Gemini response'; }
+        else { badge.className = 'ai-offline-badge'; badge.textContent = data.answer.includes('Offline') ? '' : '(offline mode)'; }
+      }
+      if (btn) btn.disabled = false;
+    })
+    .catch(() => {
+      if (resp) { resp.className = 'ai-response error'; resp.textContent = 'Something went wrong.'; }
+      if (btn) btn.disabled = false;
+    });
 }

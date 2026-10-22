@@ -9,6 +9,10 @@ STRINGS = {
     "nav.register": {"en": "Register", "de": "Registrieren"},
     "nav.routes": {"en": "Route Map", "de": "Routenkarte"},
 
+    "theme.light_mode": {"en": "Light Mode", "de": "Heller Modus"},
+    "theme.switch_to_light": {"en": "Switch to light mode", "de": "Zum hellen Modus wechseln"},
+    "theme.switch_to_dark": {"en": "Switch to dark mode", "de": "Zum dunklen Modus wechseln"},
+
     "home.hero": {"en": "CyberShop", "de": "CyberShop"},
     "home.tagline": {"en": "Tech gear for curious minds.", "de": "Tech-Ausrüstung für neugierige Köpfe."},
     "home.browse": {"en": "Browse Products", "de": "Produkte entdecken"},
