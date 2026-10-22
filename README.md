@@ -6,6 +6,7 @@ Left sidebar explains what's happening on each page, what to look for in DevTool
 ## Run
 
 ```bash
+git clone https://github.com/CyberstepsDE/CyberShop.git
 cd CyberShop
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
